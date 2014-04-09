@@ -220,8 +220,6 @@ public class WebSMS extends SherlockActivity implements OnClickListener,
 	/** Minimum length for showing sms length. */
 	private static final int TEXT_LABLE_MIN_LEN = 20;
 
-	/** Preferences: hide ads. */
-	private static boolean prefsNoAds = false;
 	/** Preferences: selected {@link ConnectorSpec}. */
 	private static ConnectorSpec prefsConnectorSpec = null;
 	/** Preferences: selected {@link SubConnectorSpec}. */
@@ -432,7 +430,6 @@ public class WebSMS extends SherlockActivity implements OnClickListener,
 				if (scheme.equals("sms") || scheme.equals("smsto")) {
 					final String s = uri.getSchemeSpecificPart();
 					this.parseSchemeSpecificPart(s);
-					this.displayAds();
 				} else if (scheme.equals("content")) {
 					this.parseThreadId(uri.getLastPathSegment());
 				}
@@ -1077,8 +1074,6 @@ public class WebSMS extends SherlockActivity implements OnClickListener,
 		MobilePhoneAdapter.setMoileNubersObly(p.getBoolean(PREFS_MOBILES_ONLY,
 				false));
 
-		prefsNoAds = DonationHelper.hideAds(this);
-		this.displayAds();
 		this.setButtons();
 	}
 
@@ -1360,9 +1355,7 @@ public class WebSMS extends SherlockActivity implements OnClickListener,
 	@Override
 	public final boolean onCreateOptionsMenu(final Menu menu) {
 		this.getSupportMenuInflater().inflate(R.menu.menu, menu);
-		if (prefsNoAds) {
-			menu.removeItem(R.id.item_donate);
-		}
+		menu.removeItem(R.id.item_donate);
 		return true;
 	}
 
@@ -1783,36 +1776,6 @@ public class WebSMS extends SherlockActivity implements OnClickListener,
 	}
 
 	/**
-	 * Show AdView on top or on bottom.
-	 */
-	private void displayAds() {
-		if (prefsNoAds) {
-			// do not display any ads for donators
-			return;
-		} else {
-			// choose ad unit id and load an ad
-			String unitId = AD_UNITID;
-			if (Math.random() > AD_THRESHOLD_CONNECTOR) {
-				// half of the requests are filled by the active connector
-				if (prefsConnectorSpec != null) {
-					final String s = prefsConnectorSpec.getAdUnitId();
-					if (s != null) {
-						unitId = s;
-						Log.d(TAG, "load connectors ads: " + s);
-					}
-				} else {
-					Log.i(TAG, "load main app ads,"
-							+ " as no valid connector spec currently");
-				}
-
-			} else {
-				Log.d(TAG, "load main app ads");
-			}
-			Ads.loadAd(this, R.id.ad, unitId, AD_KEYWORDS);
-		}
-	}
-
-	/**
 	 * Safe draft.
 	 */
 	private void saveDraft() {
@@ -1822,8 +1785,6 @@ public class WebSMS extends SherlockActivity implements OnClickListener,
 		if (to.length() == 0 || text.length() == 0) {
 			return;
 		}
-
-		this.displayAds();
 
 		final String[] tos = Utils.parseRecipients(to);
 		final ConnectorCommand command = ConnectorCommand.send(nextMsgId(this),
@@ -1894,8 +1855,6 @@ public class WebSMS extends SherlockActivity implements OnClickListener,
 				return false;
 			}
 		}
-
-		this.displayAds();
 
 		ToggleButton v = (ToggleButton) this.findViewById(R.id.flashsms);
 		final boolean flashSMS = (v.getVisibility() == View.VISIBLE)
@@ -2118,7 +2077,6 @@ public class WebSMS extends SherlockActivity implements OnClickListener,
 					prefsSubConnectorSpec = connector.getSubConnector(p
 							.getString(PREFS_SUBCONNECTOR_ID, ""));
 					me.setButtons();
-					me.displayAds();
 				}
 
 				final String b = c.getBalance();
